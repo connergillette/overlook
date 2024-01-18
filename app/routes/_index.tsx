@@ -1,6 +1,7 @@
 import { ActionFunction, LoaderArgs, LoaderFunction, json, redirect } from '@remix-run/node'
 import { createServerClient } from '@supabase/auth-helpers-remix'
 import { useActionData, useLoaderData } from 'react-router'
+import CalendarPanel from '~/components/CalendarPanel'
 
 export const action: ActionFunction = async ({ request }) => {
   const response = new Response()
@@ -41,7 +42,8 @@ export default function Index() {
 
   return (
     <div>
-      <h1 className="text-2xl w-full text-center pt-10">Welcome to Project Name!</h1>
+      {/* <h1 className="text-2xl w-full text-center pt-10">Welcome to Overlook!</h1> */}
+      <CalendarPanel />
     </div>
   );
 }
