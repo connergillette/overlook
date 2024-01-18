@@ -46,6 +46,10 @@ export default function CalendarPanel ({ }) {
       }
     }
   }
+
+  const applyTouchHighlighting = (day, hour) => {
+    highlightCell(day, hour)
+  }
   
   const stopDragging = (endDay, endHour) => {
     console.log(`stopped dragging {day: ${endDay}, hour: ${endHour}}`)
@@ -56,7 +60,7 @@ export default function CalendarPanel ({ }) {
   const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
   return (
-    <div className="flex">
+    <div className="flex overflow-hidden">
       {
         calendar.map((day, day_i) => (
           <div key={day_i} className="flex flex-col border-[1px]">
@@ -69,6 +73,7 @@ export default function CalendarPanel ({ }) {
                   onMouseDownCapture={() => startDragging(day_i, hour_i) }
                   onMouseUpCapture={(e) => { stopDragging(day_i, hour_i) }}
                   onMouseOver={(e) => { applyDragHighlighting(day_i, hour_i) }}
+                  onTouchMove={(e) => { applyTouchHighlighting(day_i, hour_i) }}
                 >
                 </div>
               ))
