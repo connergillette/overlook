@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 
 export default function CalendarInput ({ }) {
   const [calendar, setCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 48}, () => false)))
-  const [combinedCalendar, setCombinedCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 24}, () => Math.floor(Math.random() * 2))))
   const [rerender, setRerender] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [mouseDownPos, setMouseDownPos] = useState(null)
@@ -63,7 +62,8 @@ export default function CalendarInput ({ }) {
     setIsDragging(false)
   }
   
-  const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  const daysOfWeekAbbrev = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   
   if (screenWidth >= 500) {
     return (
@@ -71,7 +71,7 @@ export default function CalendarInput ({ }) {
         {
           calendar.map((day, day_i) => (
             <div key={day_i} className="flex flex-col w-full">
-              <div className="text-center select-none">{daysOfWeek[day_i]}</div>
+              <div className="text-center select-none">{daysOfWeekAbbrev[day_i]}</div>
               {
                 day.map((hour, hour_i) => (
                   <div 
@@ -105,7 +105,7 @@ export default function CalendarInput ({ }) {
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-center align-middle ${hour_i % 2 ? `border-b-[1px]` : ''} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                  className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                   onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
                   onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
                   onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
