@@ -28,7 +28,7 @@ export default function CalendarPanel ({ }) {
 
   const startDragging = (day, hour) => {
     if (!isDragging) {
-      console.log(`started dragging {day: ${day}, hour: ${hour}}`)
+      // console.log(`started dragging {day: ${day}, hour: ${hour}}`)
       setIsDragging(true)
       setMouseDownPos([day, hour])
       setHighlightType(!calendar[day][hour])
@@ -56,8 +56,8 @@ export default function CalendarPanel ({ }) {
   }
   
   const stopDragging = (endDay, endHour) => {
-    console.log('stop!')
-    console.log(`stopped dragging {day: ${endDay}, hour: ${endHour}}`)
+    // console.log('stop!')
+    // console.log(`stopped dragging {day: ${endDay}, hour: ${endHour}}`)
     applyDragHighlighting(endDay, endHour)
     setIsDragging(false)
   }
@@ -104,7 +104,7 @@ export default function CalendarPanel ({ }) {
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-theme-white text-center align-middle border-b-[1px] h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500'}`}
+                  className={`text-theme-white text-center align-middle border-b-[1px] h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50'}`}
                   onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
                   onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
                   onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
