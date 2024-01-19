@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-export default function CalendarPanel ({ }) {
-  const [calendar, setCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 24}, () => false)))
+export default function CalendarInput ({ }) {
+  const [calendar, setCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 48}, () => false)))
+  const [combinedCalendar, setCombinedCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 24}, () => Math.floor(Math.random() * 2))))
   const [rerender, setRerender] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [mouseDownPos, setMouseDownPos] = useState(null)
@@ -66,7 +67,7 @@ export default function CalendarPanel ({ }) {
   
   if (screenWidth >= 500) {
     return (
-      <div className="flex w-full rounded-lg border-[1px]">
+      <div className="flex w-full rounded-lg border-[1px] text-sm">
         {
           calendar.map((day, day_i) => (
             <div key={day_i} className="flex flex-col w-full">
@@ -75,7 +76,7 @@ export default function CalendarPanel ({ }) {
                 day.map((hour, hour_i) => (
                   <div 
                     key={`${day_i}-${hour_i}`}
-                    className={`border-[1px] h-min text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                    className={`${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-min text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                     onMouseDownCapture={() => startDragging(day_i, hour_i) }
                     onMouseUpCapture={(e) => { stopDragging(day_i, hour_i) }}
                     onMouseOver={(e) => { applyDragHighlighting(day_i, hour_i) }}
@@ -84,7 +85,7 @@ export default function CalendarPanel ({ }) {
                     // onTouchMoveCapture={(e) => { console.log(e) }}
                     // onTouchCancelCapture={(e) => { stopDragging(day_i, hour_i) }}
                   >
-                    {hour_i}:00
+                    {hour_i % 2 == 0 ? `${hour_i / 2}:00` : <br />}
                   </div>
                 ))
               }
@@ -96,7 +97,7 @@ export default function CalendarPanel ({ }) {
   } else {
     const day = calendar[dayIndex]
     return (
-      <div className="relative">
+      <div className="relative text-sm">
         {
           <div key={dayIndex} className="flex flex-col border-[1px] w-11/12 mx-auto mb-16 rounded-lg">
             <div className="text-center select-none">{daysOfWeek[dayIndex]}</div>
@@ -104,7 +105,7 @@ export default function CalendarPanel ({ }) {
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-center align-middle border-b-[1px] h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                  className={`text-center align-middle ${hour_i % 2 ? `border-b-[1px]` : ''} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                   onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
                   onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
                   onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
@@ -113,7 +114,7 @@ export default function CalendarPanel ({ }) {
                   // onTouchMoveCapture={(e) => { console.log(e) }}
                   // onTouchCancelCapture={(e) => { stopDragging(day_i, hour_i) }}
                 >
-                  {hour_i}:00
+                  {hour_i % 2 == 0 ? `${hour_i / 2}:00` : ''}
                 </div>
               ))
             }
