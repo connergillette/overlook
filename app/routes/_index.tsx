@@ -41,7 +41,7 @@ export default function Index() {
   // const actionData = useActionData()
 
   return (
-    <div className="overflow-hidden">
+    <div className="w-8/12 min-w-[900px] max-md:w-full max-md:min-w-[300px] mx-auto max-md:mt-2 max-md:pb-0 max-md:h-full h-full flex flex-col py-16">
       <CalendarPanel />
     </div>
   );
