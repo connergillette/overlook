@@ -120,10 +120,10 @@ export default function CalendarPanel ({ }) {
           </div>
         }
         <div className="flex fixed bottom-0 w-full bg-blend-difference bg-theme-dark px-10 h-12">
-          <div className="flex grow text-left h-full" onClick={() => setDayIndex(dayIndex - 1)}>
+          <div className="flex grow text-left h-full" onClick={() => setDayIndex(Math.max(0, dayIndex - 1))}>
            <span className="self-center">{'Prev Day'}</span>
           </div>
-          <div className="flex h-full" onClick={() => setDayIndex(dayIndex + 1)}>
+          <div className="flex h-full" onClick={() => setDayIndex(Math.min(dayIndex + 1, 6))}>
             <span className="self-center">{'Next Day'}</span>
           </div>
         </div>
