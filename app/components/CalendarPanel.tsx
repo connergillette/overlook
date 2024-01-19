@@ -75,7 +75,7 @@ export default function CalendarPanel ({ }) {
                 day.map((hour, hour_i) => (
                   <div 
                     key={`${day_i}-${hour_i}`}
-                    className={`text-theme-white border-[1px] h-min text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50'}`}
+                    className={`border-[1px] h-min text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                     onMouseDownCapture={() => startDragging(day_i, hour_i) }
                     onMouseUpCapture={(e) => { stopDragging(day_i, hour_i) }}
                     onMouseOver={(e) => { applyDragHighlighting(day_i, hour_i) }}
@@ -104,7 +104,7 @@ export default function CalendarPanel ({ }) {
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-theme-white text-center align-middle border-b-[1px] h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50'}`}
+                  className={`text-center align-middle border-b-[1px] h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                   onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
                   onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
                   onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
