@@ -15,13 +15,17 @@ export const action: ActionFunction = async ({ request }) => {
 
   const { data: { session }} = await supabase.auth.getSession()
 
+  const requestBody = new URLSearchParams(await request.text())
+  const name = requestBody.get('name')
+
   // TODO: Create lobby
-  const lobbyResponse = await supabase.from('rooms').insert({}).select('id')
+  const lobbyResponse = await supabase.from('rooms').insert({ name }).select('id')
   if (lobbyResponse.status === 201) {
     const lobbyId = lobbyResponse.data[0].id
     return redirect(`/${lobbyId}`)
   }
-
+  
+  console.log(lobbyResponse)
   return json({ })
 }
 
@@ -49,8 +53,8 @@ export default function Index() {
   return (
     <div className="h-screen w-screen flex flex-col justify-center">
       <Form method="post" className="flex flex-col items-center w-full h-1/3">
-        <input type="text" minLength={1} maxLength={100} className="text-4xl bg-transparent text-white border-b-2 border-white/40 w-1/2 m-4 text-center" autoFocus/>
-        <button className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark">Create New Room</button>
+        <input type="text" name="name" minLength={1} maxLength={100} className="text-4xl bg-transparent text-white border-b-2 border-white/40 w-1/2 m-4 text-center" autoFocus/>
+        <button type="submit" className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark">Create New Room</button>
       </Form>
     </div>
   )

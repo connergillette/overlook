@@ -24,6 +24,9 @@ export const meta: V2_MetaFunction = () => {
 };
 
 export const links: LinksFunction = () => [
+  { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'true' },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+  { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
   { rel: 'stylesheet', href: styles },
 ];
 
