@@ -1,18 +1,23 @@
-import { Form } from '@remix-run/react'
+import { Form, useOutletContext } from '@remix-run/react'
+import { SupabaseClient } from '@supabase/supabase-js'
 import React, { useEffect, useState } from 'react';
+import { encodeCalendarState, decodeCalendarState } from '~/util/CalendarEncoding';
 
 interface Props {
   username: string,
-  setUsername: Function,
-  isMobile: boolean
+  isMobile: boolean,
+  encodedSchedule: string,
+  lobbyId: string,
 }
 
-export default function CalendarInput ({ username, setUsername, isMobile }: Props) {
+export default function CalendarInput ({ username, isMobile, encodedSchedule, lobbyId }: Props) {
   const availabilityFormRef = React.useRef<HTMLFormElement>(null)
+  const { supabase } = useOutletContext()
 
-  const [usernameSubmitted, setUsernameSubmitted] = useState(false)
-  const [usernameInProgress, setUsernameInProgress] = useState('')
+  // const [usernameSubmitted, setUsernameSubmitted] = useState(false)
+  // const [usernameInProgress, setUsernameInProgress] = useState('')
   const [calendar, setCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 48}, () => false)))
+  // const [encodedCalendar, setEncodedCalendar] = useState(null)
   const [rerender, setRerender] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [mouseDownPos, setMouseDownPos] = useState(null)
@@ -25,6 +30,12 @@ export default function CalendarInput ({ username, setUsername, isMobile }: Prop
   }, [])
 
   useEffect(() => {
+    if (encodedSchedule) {
+      setCalendar(decodeCalendarState(encodedSchedule))
+    }
+  }, [encodedSchedule])
+
+  useEffect(() => {
     if (rerender) {
       setRerender(false)
     }
@@ -32,7 +43,7 @@ export default function CalendarInput ({ username, setUsername, isMobile }: Prop
 
   const highlightCell = (day, hour) => {
     // calendar[day][hour] = !(calendar[day][hour])
-    calendar[day][hour] = highlightType
+    calendar[day][hour] = highlightType ? 1 : 0
     setCalendar(calendar)
     setRerender(true)
   }
@@ -71,46 +82,48 @@ export default function CalendarInput ({ username, setUsername, isMobile }: Prop
     // console.log(`stopped dragging {day: ${endDay}, hour: ${endHour}}`)
     applyDragHighlighting(endDay, endHour)
     setIsDragging(false)
-
-    availabilityFormRef.current?.submit()
+    submitChanges()
   }
 
-  const encodeCalendarState = () => {
-    let encoded = ''
-    for (let i = 0; i < calendar.length; i++) {
-      for (let j = 0; j < calendar[i].length; j++) {
-        encoded += calendar[i][j] ? '1' : '0'
+  const submitChanges = async () => {
+    // availabilityFormRef.current?.submit()
+    // const requestBody = new URLSearchParams(await request.text())
+    // const availability = requestBody.get('availability')
+
+    const availability = encodeCalendarState(calendar)
+
+    const availabilityResponse = await supabase.from('availability').select().eq('room_id', lobbyId).eq('name', username)
+    if (availabilityResponse.status === 200) {
+      const existingAvailability = availabilityResponse.data[0]
+      if (existingAvailability) {
+        const updateResponse = await supabase.from('availability').update({
+          name: username,
+          room_id: lobbyId,
+          schedule_encoding: availability
+        }).eq('room_id', lobbyId).eq('name', username).select()
+        
+        console.log(updateResponse)
+      } else {
+        const insertResponse = await supabase.from('availability').insert({
+          name: username,
+          room_id: lobbyId,
+          schedule_encoding: availability
+        }).eq('room_id', lobbyId).eq('name', username).select()
+        
+        console.log(insertResponse)
       }
     }
-    return encoded
   }
   
   const daysOfWeekAbbrev = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  if (!username) {
-    return (
-      <div className="w-full">
-        <Form method="get" className="flex gap-4 items-center" onSubmit={(e) => { e.preventDefault(); setUsername(usernameInProgress)}}>
-          <input
-            type="text"
-            minLength={1}
-            maxLength={100}
-            className="text-xl bg-transparent text-white px-2 py-1 border-b-[1px] border-white/40 w-full text-center my-4" 
-            placeholder="What's your name?"
-            value={usernameInProgress}
-            onChange={(e) => setUsernameInProgress(e.target.value)}
-            autoFocus
-          />
-          <button className="px-4 py-2 rounded-lg bg-theme-yellow hover:bg-theme-yellow/90 text-theme-dark font-semibold">Submit</button>
-        </Form>
-      </div>
-    )
-  } else if (screenWidth >= 500) {
+  
+  if (!isMobile) {
     return (
       <>
-        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => {e.preventDefault(); console.log(e)}}>
+        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault(); encodeCalendarState(calendar) }}>
           <input type="hidden" name="name" value={username} />
-          <input type="hidden" name="availability" value={encodeCalendarState()} />
+          <input type="hidden" name="availability" value={encodeCalendarState(calendar)} />
         </Form>
         <div className="flex w-full rounded-lg outline outline-[1px] text-sm">
           {
@@ -140,6 +153,10 @@ export default function CalendarInput ({ username, setUsername, isMobile }: Prop
     const day = calendar[dayIndex]
     return (
       <div className="relative text-sm w-full">
+        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault() }}>
+          <input type="hidden" name="name" value={username} />
+          <input type="hidden" name="availability" value={encodeCalendarState(calendar)} />
+        </Form>
         {
           <div key={dayIndex} className="flex flex-col border-[1px] w-11/12 mx-auto mb-16 rounded-lg">
             <div className="text-center select-none">{daysOfWeek[dayIndex]}</div>
@@ -148,9 +165,10 @@ export default function CalendarInput ({ username, setUsername, isMobile }: Prop
                 <div 
                   key={`${dayIndex}-${hour_i}`}
                   className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
-                  onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
-                  onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
-                  onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
+                  onTouchStart={(e) => { startDragging(dayIndex, hour_i); applyTouchHighlighting(dayIndex, hour_i); stopDragging(dayIndex, hour_i) }}
+                  // onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
+                  // onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
+                  // onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
                 >
                   {hour_i % 2 == 0 ? `${hour_i / 2}:00` : ''}
                 </div>

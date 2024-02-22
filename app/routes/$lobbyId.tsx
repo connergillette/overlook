@@ -1,37 +1,12 @@
 import { ActionFunction, LoaderArgs, LoaderFunction, json, redirect } from '@remix-run/node'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, Outlet, useLoaderData, useOutletContext } from '@remix-run/react'
 import { createServerClient } from '@supabase/auth-helpers-remix'
 import { useEffect, useState } from 'react'
 import CalendarInput from '~/components/CalendarInput'
-
-export const action: ActionFunction = async ({ request, params }) => {
-  const response = new Response()
-
-  const supabase = createServerClient(
-    process.env.SUPABASE_URL || '',
-    process.env.SUPABASE_KEY || '',
-    { request, response }
-  )
-
-  const { data: { session }} = await supabase.auth.getSession()
-
-  const requestBody = new URLSearchParams(await request.text())
-  const name = requestBody.get('name')
-  const availability = requestBody.get('availability')
-
-  const insertResponse = await supabase.from('availability').upsert({
-    name: name,
-    room_id: params['lobbyId'],
-    schedule_encoding: availability
-  }).select('id')
-
-  console.log(insertResponse)
-
-  return json({})
-}
+import { decodeCalendarState } from '~/util/CalendarEncoding'
 
 export const loader: LoaderFunction = async ({ request, params }: LoaderArgs) => {
-  const { lobbyId } = params
+  const { lobbyId, username } = params
   const response = new Response()
   // an empty response is required for the auth helpers
   // to set cookies to manage auth
@@ -46,22 +21,54 @@ export const loader: LoaderFunction = async ({ request, params }: LoaderArgs) =>
   const lobbyResponse = await supabase.from('rooms').select().eq('id', lobbyId)
   if (lobbyResponse.status === 200) {
     const lobby = lobbyResponse.data[0]
+    const availabilityResponse = await supabase.from('availability').select('schedule_encoding').eq('room_id', lobbyId)
 
-    return json({ session, lobby })
+    if (availabilityResponse.status === 200) {
+      const availability = availabilityResponse.data
+      if (availability) {
+        let combinedAvailability = []
+        for (const entry of availability) {
+          if (combinedAvailability.length === 0) {
+            console.log(`combinedAvailability initialized with ${entry.schedule_encoding.split('-')}`)
+            combinedAvailability = entry.schedule_encoding.split('-')
+          } else {
+            let schedule = entry.schedule_encoding.split('-')
+            for (let i = 0; i < combinedAvailability.length; i++) {
+              const availabilitySum : number = parseInt(combinedAvailability[i]) + parseInt(schedule[i])
+              // console.log(availabilitySum)
+              combinedAvailability[i] = availabilitySum + ''
+            }
+            console.log(`-> combinedAvailability is now ${combinedAvailability}`)
+          }
+        }
+
+        console.log(combinedAvailability)
+        return json({ lobby, username, availability, combinedAvailability: combinedAvailability.join('-') })
+      }
+      return json({ lobby, username, availability: [], combinedAvailability: []})
+    }
+    return json({ session, lobby, username })
   }
+  return json({})
 }
 
 export default function Lobby() {
-  const { lobby, session } = useLoaderData()
+  const { lobby, session, username: usernameQuery, availability, combinedAvailability } = useLoaderData()
+  const { supabase } = useOutletContext()
   // const actionData = useActionData()
   const respondents = 5 // TODO: Make this non-magical
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState(usernameQuery)
+  const [usernameInProgress, setUsernameInProgress] = useState('')
   const [view, setView] = useState('input')
-  const [combinedCalendar, setCombinedCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 48}, () => Math.floor(Math.random() * respondents))))
+  const [combinedCalendar, setCombinedCalendar] = useState(
+    Array.from({length: 7}, () => Array.from({length: 48}, () => 0))
+  )
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     setIsMobile(window.screen.width <= 500)
+    console.log(`combinedAvailability: ${combinedAvailability}`)
+    setCombinedCalendar(decodeCalendarState(combinedAvailability))
   }, [])
 
   const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -78,8 +85,27 @@ export default function Lobby() {
         )}
         <div className="flex w-full gap-4">
           {
-            (!isMobile || (isMobile && view === 'input')) && (
-              <CalendarInput isMobile={isMobile} username={username} setUsername={setUsername} />
+            (!isMobile || (isMobile && view === 'input')) && username && (
+              <Outlet context={{ supabase, session }} />
+            )
+          }
+          {
+            !username && (
+              <div className="w-full">
+                <Form method="get" action={`/${lobby.id}/${usernameInProgress}`} className="flex gap-4 items-center" onSubmit={(e) => { setUsername(usernameInProgress)}}>
+                  <input
+                    type="text"
+                    minLength={1}
+                    maxLength={100}
+                    className="text-xl bg-transparent text-white px-2 py-1 border-b-[1px] border-white/40 w-full text-center my-4" 
+                    placeholder="What's your name?"
+                    value={usernameInProgress}
+                    onChange={(e) => setUsernameInProgress(e.target.value)}
+                    autoFocus
+                  />
+                  <button className="px-4 py-2 rounded-lg bg-theme-yellow hover:bg-theme-yellow/90 text-theme-dark font-semibold">Submit</button>
+                </Form>
+              </div>
             )
           }
           {
