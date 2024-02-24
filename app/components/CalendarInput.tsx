@@ -6,17 +6,18 @@ import { encodeCalendarState, decodeCalendarState } from '~/util/CalendarEncodin
 interface Props {
   username: string,
   isMobile: boolean,
-  encodedSchedule: string,
+  schedule: string,
   lobbyId: string,
+  setUserAvailability: React.Dispatch<React.SetStateAction<string>>,
 }
 
-export default function CalendarInput ({ username, isMobile, encodedSchedule, lobbyId }: Props) {
+export default function CalendarInput ({ username, isMobile, schedule, lobbyId, setUserAvailability }: Props) {
   const availabilityFormRef = React.useRef<HTMLFormElement>(null)
   const { supabase } = useOutletContext()
 
   // const [usernameSubmitted, setUsernameSubmitted] = useState(false)
   // const [usernameInProgress, setUsernameInProgress] = useState('')
-  const [calendar, setCalendar] = useState(Array.from({length: 7}, () => Array.from({length: 48}, () => false)))
+  const [calendar, setCalendar] = useState(schedule)
   // const [encodedCalendar, setEncodedCalendar] = useState(null)
   const [rerender, setRerender] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -30,19 +31,12 @@ export default function CalendarInput ({ username, isMobile, encodedSchedule, lo
   }, [])
 
   useEffect(() => {
-    if (encodedSchedule) {
-      setCalendar(decodeCalendarState(encodedSchedule))
-    }
-  }, [encodedSchedule])
-
-  useEffect(() => {
     if (rerender) {
       setRerender(false)
     }
   }, [rerender])
 
   const highlightCell = (day, hour) => {
-    // calendar[day][hour] = !(calendar[day][hour])
     calendar[day][hour] = highlightType ? 1 : 0
     setCalendar(calendar)
     setRerender(true)
@@ -50,7 +44,6 @@ export default function CalendarInput ({ username, isMobile, encodedSchedule, lo
 
   const startDragging = (day, hour) => {
     if (!isDragging) {
-      // console.log(`started dragging {day: ${day}, hour: ${hour}}`)
       setIsDragging(true)
       setMouseDownPos([day, hour])
       setHighlightType(!calendar[day][hour])
@@ -78,18 +71,12 @@ export default function CalendarInput ({ username, isMobile, encodedSchedule, lo
   }
   
   const stopDragging = (endDay, endHour) => {
-    // console.log('stop!')
-    // console.log(`stopped dragging {day: ${endDay}, hour: ${endHour}}`)
     applyDragHighlighting(endDay, endHour)
     setIsDragging(false)
     submitChanges()
   }
 
   const submitChanges = async () => {
-    // availabilityFormRef.current?.submit()
-    // const requestBody = new URLSearchParams(await request.text())
-    // const availability = requestBody.get('availability')
-
     const availability = encodeCalendarState(calendar)
 
     const availabilityResponse = await supabase.from('availability').select().eq('room_id', lobbyId).eq('name', username)
@@ -101,18 +88,15 @@ export default function CalendarInput ({ username, isMobile, encodedSchedule, lo
           room_id: lobbyId,
           schedule_encoding: availability
         }).eq('room_id', lobbyId).eq('name', username).select()
-        
-        console.log(updateResponse)
       } else {
         const insertResponse = await supabase.from('availability').insert({
           name: username,
           room_id: lobbyId,
           schedule_encoding: availability
         }).eq('room_id', lobbyId).eq('name', username).select()
-        
-        console.log(insertResponse)
       }
     }
+    setUserAvailability(calendar)
   }
   
   const daysOfWeekAbbrev = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
@@ -121,9 +105,8 @@ export default function CalendarInput ({ username, isMobile, encodedSchedule, lo
   if (!isMobile) {
     return (
       <>
-        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault(); encodeCalendarState(calendar) }}>
+        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault(); }}>
           <input type="hidden" name="name" value={username} />
-          <input type="hidden" name="availability" value={encodeCalendarState(calendar)} />
         </Form>
         <div className="flex w-full rounded-lg outline outline-[1px] text-sm">
           {
@@ -155,7 +138,6 @@ export default function CalendarInput ({ username, isMobile, encodedSchedule, lo
       <div className="relative text-sm w-full">
         <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault() }}>
           <input type="hidden" name="name" value={username} />
-          <input type="hidden" name="availability" value={encodeCalendarState(calendar)} />
         </Form>
         {
           <div key={dayIndex} className="flex flex-col border-[1px] w-11/12 mx-auto mb-16 rounded-lg">

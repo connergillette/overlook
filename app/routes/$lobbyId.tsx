@@ -21,55 +21,86 @@ export const loader: LoaderFunction = async ({ request, params }: LoaderArgs) =>
   const lobbyResponse = await supabase.from('rooms').select().eq('id', lobbyId)
   if (lobbyResponse.status === 200) {
     const lobby = lobbyResponse.data[0]
-    const availabilityResponse = await supabase.from('availability').select('schedule_encoding').eq('room_id', lobbyId)
+    const availabilityResponse = await supabase.from('availability').select('schedule_encoding, name').eq('room_id', lobbyId)
 
-    if (availabilityResponse.status === 200) {
-      const availability = availabilityResponse.data
-      if (availability) {
-        let combinedAvailability = []
-        for (const entry of availability) {
-          if (combinedAvailability.length === 0) {
-            console.log(`combinedAvailability initialized with ${entry.schedule_encoding.split('-')}`)
-            combinedAvailability = entry.schedule_encoding.split('-')
-          } else {
-            let schedule = entry.schedule_encoding.split('-')
-            for (let i = 0; i < combinedAvailability.length; i++) {
-              const availabilitySum : number = parseInt(combinedAvailability[i]) + parseInt(schedule[i])
-              // console.log(availabilitySum)
-              combinedAvailability[i] = availabilitySum + ''
-            }
-            console.log(`-> combinedAvailability is now ${combinedAvailability}`)
-          }
-        }
-
-        console.log(combinedAvailability)
-        return json({ lobby, username, availability, combinedAvailability: combinedAvailability.join('-') })
-      }
-      return json({ lobby, username, availability: [], combinedAvailability: []})
+    let allAvailability = []
+    if (availabilityResponse.status === 200 && availabilityResponse.data) {
+      allAvailability = availabilityResponse.data
     }
-    return json({ session, lobby, username })
+    return json({ session, lobby, username, allAvailability })
   }
   return json({})
 }
 
 export default function Lobby() {
-  const { lobby, session, username: usernameQuery, availability, combinedAvailability } = useLoaderData()
   const { supabase } = useOutletContext()
-  // const actionData = useActionData()
+  const { lobby, session, allAvailability } = useLoaderData()
+
+  const [username, setUsername] = useState('')
+
+  const initializeCombinedAvailability = () => {
+    let combinedAvailability = Array.from({ length: 7 }, () => Array.from({ length: 48 }, () => 0))
+    const otherAvailability = allAvailability.filter((entry) => entry.name !== username)
+    for (const entry of otherAvailability) {
+      let schedule = decodeCalendarState(entry.schedule_encoding)
+      for (let i = 0; i < combinedAvailability.length; i++) {
+        for (let j = 0; j < combinedAvailability[i].length; j++) {
+          const availabilitySum : number = combinedAvailability[i][j] + schedule[i][j]
+          combinedAvailability[i][j] = availabilitySum
+        }
+      }
+    }
+
+    return combinedAvailability
+  }
+
+  const initialCombinedAvailability = initializeCombinedAvailability()
+
+  const initializeUserAvailability = (username) => {
+    const userEntry = allAvailability.find((entry) => entry.name === username)?.schedule_encoding
+    if (!userEntry) return Array.from({ length: 7 }, () => Array.from({ length: 48 }, () => 0))
+
+    const userAvailabilityInit = decodeCalendarState(userEntry)
+    return userAvailabilityInit
+  }
+  // const initializedUserAvailability = initializeUserAvailability(username)
+
   const respondents = 5 // TODO: Make this non-magical
-  const [username, setUsername] = useState(usernameQuery)
+  const [userAvailability, setUserAvailability] = useState(initializeUserAvailability(''))
   const [usernameInProgress, setUsernameInProgress] = useState('')
   const [view, setView] = useState('input')
-  const [combinedCalendar, setCombinedCalendar] = useState(
-    Array.from({length: 7}, () => Array.from({length: 48}, () => 0))
-  )
+
+  const [combinedCalendar, setCombinedCalendar] = useState(initialCombinedAvailability)
+
   const [isMobile, setIsMobile] = useState(false)
+
+  const updateCombinedCalendar = () => {
+    let newCombinedCalendar = [...initialCombinedAvailability]
+
+    for (let i = 0; i < combinedCalendar.length; i++) {
+      for (let k = 0; k < combinedCalendar[i].length; k++) {
+        if (userAvailability) {
+          newCombinedCalendar[i][k] += userAvailability[i][k]
+        }
+      }
+    }
+    setCombinedCalendar(newCombinedCalendar)
+  }
+
+  const updateUserAvailability = (value) => {
+    setUserAvailability(value)
+    updateCombinedCalendar()
+  }
+
+  const updateUsername = (username) => {
+    setUsername(username)
+    updateUserAvailability(initializeUserAvailability(username))
+  }
 
   useEffect(() => {
     setIsMobile(window.screen.width <= 500)
-    console.log(`combinedAvailability: ${combinedAvailability}`)
-    setCombinedCalendar(decodeCalendarState(combinedAvailability))
-  }, [])
+    updateCombinedCalendar()
+  }, [userAvailability])
 
   const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
@@ -86,13 +117,13 @@ export default function Lobby() {
         <div className="flex w-full gap-4">
           {
             (!isMobile || (isMobile && view === 'input')) && username && (
-              <Outlet context={{ supabase, session }} />
+              <CalendarInput username={username} schedule={userAvailability} setUserAvailability={updateUserAvailability} isMobile={isMobile} lobbyId={lobby.id} />
             )
           }
           {
             !username && (
               <div className="w-full">
-                <Form method="get" action={`/${lobby.id}/${usernameInProgress}`} className="flex gap-4 items-center" onSubmit={(e) => { setUsername(usernameInProgress)}}>
+                <Form method="get" className="flex gap-4 items-center" onSubmit={(e) => { e.preventDefault(); updateUsername(usernameInProgress) }}>
                   <input
                     type="text"
                     minLength={1}

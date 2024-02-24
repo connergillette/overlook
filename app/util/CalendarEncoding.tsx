@@ -4,7 +4,10 @@ export function decodeCalendarState (encoded: string): number[][] {
   for (let day = 0; day < 7; day++) {
     const subarr = []
     for (let segment = day * 48; segment < (day * 48) + 48; segment++) {
-      subarr.push(parseInt(data[segment]))
+      const segmentArr = data[segment].split('-')
+      for (const value of segmentArr) {
+        subarr.push(parseInt(value))
+      }
     }
     decoded.push(subarr)
   }

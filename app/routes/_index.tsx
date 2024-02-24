@@ -24,8 +24,7 @@ export const action: ActionFunction = async ({ request }) => {
     const lobbyId = lobbyResponse.data[0].id
     return redirect(`/${lobbyId}`)
   }
-  
-  console.log(lobbyResponse)
+
   return json({ })
 }
 

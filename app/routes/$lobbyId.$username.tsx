@@ -28,16 +28,12 @@ export const action: ActionFunction = async ({ request, params }) => {
         room_id: params['lobbyId'],
         schedule_encoding: availability
       }).eq('room_id', lobbyId).eq('name', username).select()
-      
-      console.log(updateResponse)
     } else {
       const insertResponse = await supabase.from('availability').insert({
         name: username,
         room_id: params['lobbyId'],
         schedule_encoding: availability
       }).eq('room_id', lobbyId).eq('name', username).select()
-      
-      console.log(insertResponse)
     }
   }
   return null
@@ -60,7 +56,6 @@ export async function loader ({ request, params }) {
   if (lobbyResponse.status === 200) {
     const lobby = lobbyResponse.data[0]
     const availabilityResponse = await supabase.from('availability').select().eq('room_id', lobbyId).eq('name', username)
-    // console.log(availabilityResponse)
     if (availabilityResponse.status === 200) {
       const availability = availabilityResponse.data[0]
 
