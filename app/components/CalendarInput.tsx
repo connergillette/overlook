@@ -78,6 +78,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
 
   const submitChanges = async () => {
     const availability = encodeCalendarState(calendar)
+    setUserAvailability(calendar)
 
     const availabilityResponse = await supabase.from('availability').select().eq('room_id', lobbyId).eq('name', username)
     if (availabilityResponse.status === 200) {
@@ -96,7 +97,6 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
         }).eq('room_id', lobbyId).eq('name', username).select()
       }
     }
-    setUserAvailability(calendar)
   }
   
   const daysOfWeekAbbrev = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
