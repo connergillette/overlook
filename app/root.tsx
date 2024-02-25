@@ -1,4 +1,3 @@
-import { cssBundleHref } from "@remix-run/css-bundle"
 import { json, V2_MetaFunction, type LinksFunction, type LoaderArgs } from "@remix-run/node"
 import {
   Links,
@@ -10,11 +9,10 @@ import {
   useLoaderData,
   useRevalidator,
 } from "@remix-run/react"
-import { createBrowserClient, createServerClient } from '@supabase/auth-helpers-remix'
+import { SupabaseClient, createBrowserClient, createServerClient } from '@supabase/auth-helpers-remix'
 
 import styles from "./tailwind.css"
 import { useEffect, useState } from 'react'
-import Nav from './components/Nav'
 
 export const meta: V2_MetaFunction = () => {
   return [
@@ -24,7 +22,7 @@ export const meta: V2_MetaFunction = () => {
 };
 
 export const links: LinksFunction = () => [
-  { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'true' },
+  { rel: 'preconnect', href: 'https://fonts.gstatic.com' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
   { rel: 'stylesheet', href: styles },
@@ -53,7 +51,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 export default function App() {
   const { env, session } = useLoaderData()
   const { revalidate } = useRevalidator()
-  const [supabase] = useState(() => createBrowserClient(env.SUPABASE_URL, env.SUPABASE_KEY))
+  const [supabase] = useState<SupabaseClient>(() => createBrowserClient(env.SUPABASE_URL, env.SUPABASE_KEY))
 
   const serverAccessToken = session?.access_token
 

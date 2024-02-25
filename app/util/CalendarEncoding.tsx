@@ -14,7 +14,7 @@ export function decodeCalendarState (encoded: string): number[][] {
   return decoded
 }
 
-export function encodeCalendarState (calendar : string[][]) : string {
+export function encodeCalendarState (calendar : number[][]) : string {
   let encoded = []
   for (let i = 0; i < calendar.length; i++) {
     for (let j = 0; j < calendar[i].length; j++) {

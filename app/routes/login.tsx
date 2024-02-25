@@ -1,5 +1,6 @@
 import type { ActionFunction } from '@remix-run/node'
 import { Form, useActionData, useOutletContext } from '@remix-run/react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
 
 export const action : ActionFunction = async ({ request }) => {
@@ -10,7 +11,7 @@ export const action : ActionFunction = async ({ request }) => {
 
 export default function Login() {
   const data = useActionData()
-  const { supabase } = useOutletContext()
+  const { supabase }: { supabase: SupabaseClient } = useOutletContext()
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 

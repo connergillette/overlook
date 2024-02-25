@@ -1,34 +1,26 @@
 import { Form, useOutletContext } from '@remix-run/react'
-import { SupabaseClient } from '@supabase/supabase-js'
+import { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
 import React, { useEffect, useState } from 'react';
-import { encodeCalendarState, decodeCalendarState } from '~/util/CalendarEncoding';
+import { encodeCalendarState } from '~/util/CalendarEncoding';
 
 interface Props {
   username: string,
   isMobile: boolean,
-  schedule: string,
+  schedule: number[][],
   lobbyId: string,
-  setUserAvailability: React.Dispatch<React.SetStateAction<string>>,
+  setUserAvailability: Function,
 }
 
 export default function CalendarInput ({ username, isMobile, schedule, lobbyId, setUserAvailability }: Props) {
   const availabilityFormRef = React.useRef<HTMLFormElement>(null)
-  const { supabase } = useOutletContext()
+  const { supabase } : { supabase: SupabaseClient } = useOutletContext()
 
-  // const [usernameSubmitted, setUsernameSubmitted] = useState(false)
-  // const [usernameInProgress, setUsernameInProgress] = useState('')
-  const [calendar, setCalendar] = useState(schedule)
-  // const [encodedCalendar, setEncodedCalendar] = useState(null)
+  const [calendar, setCalendar] = useState<number[][]>(schedule)
   const [rerender, setRerender] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-  const [mouseDownPos, setMouseDownPos] = useState(null)
+  const [mouseDownPos, setMouseDownPos] = useState<number[] | null>(null)
   const [highlightType, setHighlightType] = useState(true)
-  const [screenWidth, setScreenWidth] = useState(0)
   const [dayIndex, setDayIndex] = useState(0)
-
-  useEffect(() => {
-    setScreenWidth(window.screen.width)
-  }, [])
 
   useEffect(() => {
     if (rerender) {
@@ -36,13 +28,13 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
     }
   }, [rerender])
 
-  const highlightCell = (day, hour) => {
+  const highlightCell = (day: number, hour: number) => {
     calendar[day][hour] = highlightType ? 1 : 0
     setCalendar(calendar)
     setRerender(true)
   }
 
-  const startDragging = (day, hour) => {
+  const startDragging = (day: number, hour: number) => {
     if (!isDragging) {
       setIsDragging(true)
       setMouseDownPos([day, hour])
@@ -50,8 +42,9 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
     }
   }
 
-  const applyDragHighlighting = (day, hour) => {
+  const applyDragHighlighting = (day: number, hour: number) => {
     if (isDragging) {
+      if (mouseDownPos === null) return
       const [startDay, startHour] = mouseDownPos
       const minX = Math.min(startDay, day)
       const minY = Math.min(startHour, hour)
@@ -66,11 +59,11 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
     }
   }
   
-  const applyTouchHighlighting = (day, hour) => {
+  const applyTouchHighlighting = (day: number, hour: number) => {
     highlightCell(day, hour)
   }
   
-  const stopDragging = (endDay, endHour) => {
+  const stopDragging = (endDay: number, endHour: number) => {
     applyDragHighlighting(endDay, endHour)
     setIsDragging(false)
     submitChanges()
@@ -80,17 +73,17 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
     const availability = encodeCalendarState(calendar)
     setUserAvailability(calendar)
 
-    const availabilityResponse = await supabase.from('availability').select().eq('room_id', lobbyId).eq('name', username)
+    const availabilityResponse : PostgrestResponse<any> = await supabase.from('availability').select().eq('room_id', lobbyId).eq('name', username)
     if (availabilityResponse.status === 200) {
-      const existingAvailability = availabilityResponse.data[0]
+      const existingAvailability = availabilityResponse.data?.[0]
       if (existingAvailability) {
-        const updateResponse = await supabase.from('availability').update({
+        await supabase.from('availability').update({
           name: username,
           room_id: lobbyId,
           schedule_encoding: availability
         }).eq('room_id', lobbyId).eq('name', username).select()
       } else {
-        const insertResponse = await supabase.from('availability').insert({
+        await supabase.from('availability').insert({
           name: username,
           room_id: lobbyId,
           schedule_encoding: availability
@@ -117,7 +110,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
                   day.map((hour, hour_i) => (
                     <div 
                       key={`${day_i}-${hour_i}`}
-                      className={`${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-min hover:opacity-90 text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                      className={`${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-min hover:opacity-90 text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                       onMouseDownCapture={() => startDragging(day_i, hour_i) }
                       onMouseUpCapture={(e) => { stopDragging(day_i, hour_i) }}
                       onMouseOver={(e) => { applyDragHighlighting(day_i, hour_i) }}
@@ -146,11 +139,8 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == true) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                  className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                   onTouchStart={(e) => { startDragging(dayIndex, hour_i); applyTouchHighlighting(dayIndex, hour_i); stopDragging(dayIndex, hour_i) }}
-                  // onMouseDownCapture={() => startDragging(dayIndex, hour_i) }
-                  // onMouseUpCapture={(e) => { stopDragging(dayIndex, hour_i) }}
-                  // onMouseOver={(e) => { applyDragHighlighting(dayIndex, hour_i) }}
                 >
                   {hour_i % 2 == 0 ? `${hour_i / 2}:00` : ''}
                 </div>

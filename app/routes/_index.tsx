@@ -1,8 +1,8 @@
-import { ActionFunction, LoaderArgs, LoaderFunction, json, redirect } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { json, redirect } from '@remix-run/node'
+import type { ActionFunction, LoaderArgs, LoaderFunction } from '@remix-run/node'
+import { Form } from '@remix-run/react'
 import { createServerClient } from '@supabase/auth-helpers-remix'
-import { useState } from 'react'
-import CalendarInput from '~/components/CalendarInput'
+import type { PostgrestResponse } from '@supabase/supabase-js'
 
 export const action: ActionFunction = async ({ request }) => {
   const response = new Response()
@@ -13,15 +13,13 @@ export const action: ActionFunction = async ({ request }) => {
     { request, response }
   )
 
-  const { data: { session }} = await supabase.auth.getSession()
-
   const requestBody = new URLSearchParams(await request.text())
   const name = requestBody.get('name')
 
   // TODO: Create lobby
-  const lobbyResponse = await supabase.from('rooms').insert({ name }).select('id')
+  const lobbyResponse : PostgrestResponse<any> = await supabase.from('rooms').insert({ name }).select('id')
   if (lobbyResponse.status === 201) {
-    const lobbyId = lobbyResponse.data[0].id
+    const lobbyId = lobbyResponse.data?.[0].id
     return redirect(`/${lobbyId}`)
   }
 
