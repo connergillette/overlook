@@ -78,7 +78,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="bg-theme-dark text-theme-white">
+      <body className="bg-theme-dark text-theme-white h-screen">
         {/* <div className="w-full fixed bg-white/90 border-b-[1px] border-gray-100 border-solid h-14 flex justify-center">
           <Nav session={session} signOut={() => supabase.auth.signOut()} />
         </div> */}

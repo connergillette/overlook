@@ -1,5 +1,5 @@
 import { Form, useOutletContext } from '@remix-run/react'
-import { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
+import type { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
 import React, { useEffect, useState } from 'react';
 import { encodeCalendarState } from '~/util/CalendarEncoding';
 
@@ -27,6 +27,10 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
       setRerender(false)
     }
   }, [rerender])
+
+  useEffect(() => {
+    setCalendar(schedule)
+  }, [schedule])
 
   const highlightCell = (day: number, hour: number) => {
     calendar[day][hour] = highlightType ? 1 : 0
@@ -94,7 +98,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
   
   const daysOfWeekAbbrev = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
   const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  
+
   if (!isMobile) {
     return (
       <>
@@ -110,7 +114,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
                   day.map((hour, hour_i) => (
                     <div 
                       key={`${day_i}-${hour_i}`}
-                      className={`${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-min hover:opacity-90 text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                      className={`${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-min hover:opacity-90 text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == 1) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                       onMouseDownCapture={() => startDragging(day_i, hour_i) }
                       onMouseUpCapture={(e) => { stopDragging(day_i, hour_i) }}
                       onMouseOver={(e) => { applyDragHighlighting(day_i, hour_i) }}
@@ -139,7 +143,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                  className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == 1) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
                   onTouchStart={(e) => { startDragging(dayIndex, hour_i); applyTouchHighlighting(dayIndex, hour_i); stopDragging(dayIndex, hour_i) }}
                 >
                   {hour_i % 2 == 0 ? `${hour_i / 2}:00` : ''}

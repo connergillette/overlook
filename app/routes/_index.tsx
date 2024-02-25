@@ -48,9 +48,12 @@ export default function Index() {
   // const actionData = useActionData()
 
   return (
-    <div className="h-screen w-screen flex flex-col justify-center">
-      <Form method="post" className="flex flex-col items-center w-full h-1/3">
-        <input type="text" name="name" minLength={1} maxLength={100} className="text-4xl bg-transparent text-white border-b-2 border-white/40 w-1/2 m-4 text-center" autoFocus/>
+    <div className="container flex flex-col justify-center mx-auto h-full h-2/3">
+      <Form method="post" className="flex flex-col items-center w-full">
+        <div className="w-1/2 m-4 flex flex-col justify-center">
+          <label className="text-sm w-full">ROOM NAME</label>
+          <input type="text" name="name" minLength={1} maxLength={100} className="text-4xl bg-transparent text-white border-b-2 border-white/40 text-center" autoFocus/>
+        </div>
         <button type="submit" className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark">Create New Room</button>
       </Form>
     </div>
