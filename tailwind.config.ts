@@ -7,7 +7,8 @@ export default {
       colors: {
         'theme-white': '#CECECE',
         'theme-dark': '#1B1D1F',
-        'theme-yellow': '#E7BD7B'
+        'theme-yellow': '#E7BD7B',
+        'theme-green': '#00FF44',
       }
     },
   },

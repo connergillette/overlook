@@ -2,6 +2,7 @@ import { Form, useOutletContext } from '@remix-run/react'
 import type { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
 import React, { useEffect, useState } from 'react';
 import { encodeCalendarState } from '~/util/CalendarEncoding';
+import CalendarInputCell from './CalendarInputCell'
 
 interface Props {
   username: string,
@@ -105,22 +106,23 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
         <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault(); }}>
           <input type="hidden" name="name" value={username} />
         </Form>
-        <div className="flex w-full rounded-lg outline outline-[1px] text-sm">
+        <div className="flex w-full rounded-lg text-sm">
           {
             calendar.map((day, day_i) => (
               <div key={day_i} className="flex flex-col w-full">
-                <div className="text-center select-none">{daysOfWeekAbbrev[day_i]}</div>
+                <div className="text-center select-none font-bold m-1">{daysOfWeekAbbrev[day_i]}</div>
                 {
                   day.map((hour, hour_i) => (
-                    <div 
+                    <CalendarInputCell
                       key={`${day_i}-${hour_i}`}
-                      className={`${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-min hover:opacity-90 text-center select-none w-full ${ (calendar.length > day_i && calendar[day_i].length > hour_i && hour == 1) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
-                      onMouseDownCapture={() => startDragging(day_i, hour_i) }
-                      onMouseUpCapture={(e) => { stopDragging(day_i, hour_i) }}
-                      onMouseOver={(e) => { applyDragHighlighting(day_i, hour_i) }}
-                    >
-                      {hour_i % 2 == 0 ? `${hour_i / 2}:00` : <br />}
-                    </div>
+                      day_i={day_i}
+                      hour_i={hour_i}
+                      hour={hour}
+                      calendar={calendar}
+                      startDragging={startDragging}
+                      stopDragging={stopDragging}
+                      applyDragHighlighting={applyDragHighlighting}
+                    />
                   ))
                 }
               </div>
@@ -137,13 +139,13 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
           <input type="hidden" name="name" value={username} />
         </Form>
         {
-          <div key={dayIndex} className="flex flex-col border-[1px] w-11/12 mx-auto mb-16 rounded-lg">
+          <div key={dayIndex} className="flex flex-col w-11/12 mx-auto mb-16 rounded-lg">
             <div className="text-center select-none">{daysOfWeek[dayIndex]}</div>
             {
               day.map((hour, hour_i) => (
                 <div 
                   key={`${dayIndex}-${hour_i}`}
-                  className={`text-center align-middle ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == 1) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'bg-gray-500 text-opacity-50 text-theme-white'}`}
+                  className={`p-2 text-center align-middle h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == 1) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'text-opacity-50 text-theme-white outline outline-white/10'}`}
                   onTouchStart={(e) => { startDragging(dayIndex, hour_i); applyTouchHighlighting(dayIndex, hour_i); stopDragging(dayIndex, hour_i) }}
                 >
                   {hour_i % 2 == 0 ? `${hour_i / 2}:00` : ''}

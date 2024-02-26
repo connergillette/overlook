@@ -4,6 +4,7 @@ import { Form, useLoaderData } from '@remix-run/react'
 import { createServerClient } from '@supabase/auth-helpers-remix'
 import { PostgrestResponse } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import CalendarCell from '~/components/CalendarCell'
 import CalendarInput from '~/components/CalendarInput'
 import { decodeCalendarState } from '~/util/CalendarEncoding'
 
@@ -110,7 +111,7 @@ export default function Lobby() {
   const respondents = allAvailability?.length
   return (
     <div className="container min-w-[900px] max-md:w-full max-md:min-w-[300px] mx-auto max-lg:mt-2 max-lg:pb-0 max-lg:h-full h-full flex flex-col py-16 max-lg:p-4 gap-4">
-      <h1 className="text-2xl font-semibold">{lobby.name}</h1>
+      <h1 className="text-2xl font-semibold w-full text-center">{lobby.name}</h1>
       { isMobile && (
         <div className="w-11/12 flex whitespace-nowrap gap-4 justify-center mx-auto">
           <button className={`${view === 'input' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1`} onClick={() => setView('input')}>Your Availability</button>
@@ -129,7 +130,7 @@ export default function Lobby() {
                         type="text"
                         minLength={1}
                         maxLength={100}
-                        className="text-xl bg-transparent text-white px-2 py-1 border-b-[1px] border-white/40 w-full text-center my-4" 
+                        className="text-xl bg-transparent text-white px-2 py-1 w-full text-center my-4" 
                         placeholder="What's your name?"
                         value={usernameInProgress}
                         onChange={(e) => setUsernameInProgress(e.target.value)}
@@ -141,6 +142,7 @@ export default function Lobby() {
                 }
               </div>
               <div className={`transition ${!username && 'blur-md pointer-events-none opacity-30'} w-full`}>
+                <h2 className="text-center">Your Availability</h2>
                 <CalendarInput username={username} schedule={userAvailability} setUserAvailability={updateUserAvailability} isMobile={isMobile} lobbyId={lobby.id} />
               </div>
             </div>
@@ -148,14 +150,18 @@ export default function Lobby() {
         }
         {
           (!isMobile || (isMobile && view === 'combined')) && (
-            <div className={`flex w-full rounded-lg outline outline-[1px] text-sm max-md:w-11/12 mx-auto bg-gray-500`}>
+            <div className="flex flex-col w-full">
+            <h2 className="text-center">Group Availbility</h2>
+            <div className={`flex w-full rounded-lg text-sm max-md:w-11/12 mx-auto`}>
               {
                 combinedCalendar.map((day, day_i) => (
                   <div key={day_i} className="flex flex-col w-full">
-                    <div className="text-center select-none bg-theme-dark">{daysOfWeek[day_i]}</div>
+
+                    <div className="text-center select-none bg-theme-dark font-bold m-1">{daysOfWeek[day_i]}</div>
                     {
                       day.map((hour, hour_i) => {
-                        const calculatedOpacity = Math.ceil(100 - ((respondents - hour) * (100 / respondents)))
+                        const weight = Math.ceil(100 - ((respondents - hour) * (100 / respondents)))
+                        const calculatedOpacity = Math.ceil(weight / 10) * 10
 
                         // TODO: This is bad but necessary for Tailwind to keep up (but there's a better way)
                         let color = 'bg-theme-yellow/10'
@@ -173,15 +179,7 @@ export default function Lobby() {
 
                         const highlightedCellStyle = `${color} text-opacity-100`
                         return (
-                          <div 
-                          key={`${day_i}-${hour_i}`}
-                          className={`\
-                            ${hour_i % 2 == 0 ? `border-[1px] border-gray-400/20 border-t-[2px]` : 'border-x-[1px] border-gray-400/20'} \
-                            h-min text-center select-none w-full \
-                            ${(hour > 0) ? highlightedCellStyle : 'bg-gray-500 text-opacity-50'}`}
-                          >
-                            {hour_i % 2 == 0 ? `${hour_i / 2}:00` : <br />}
-                          </div>
+                          <CalendarCell hour_i={hour_i} hour={hour} highlightedCellStyle={highlightedCellStyle} key={`${day_i}-${hour_i}`} />
                         )}
                       )
                     }
@@ -189,6 +187,7 @@ export default function Lobby() {
                 ))
               }
             </div>
+          </div>
           )
         }
       </div>
