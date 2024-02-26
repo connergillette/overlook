@@ -25,16 +25,27 @@ export const loader: LoaderFunction = async ({ request, params }: LoaderArgs) =>
     const availabilityResponse = await supabase.from('availability').select('schedule_encoding, name').eq('room_id', lobbyId)
 
     let allAvailability : AvailabilityEntry[] = []
+    let attendeeGrid : string[][][] = Array.from({ length: 7 }, () => Array.from({ length: 48 }, () => []))
     if (availabilityResponse.status === 200 && availabilityResponse.data) {
       allAvailability = availabilityResponse.data
+      const entries = allAvailability.map((entry: AvailabilityEntry) => ({ name: entry.name, schedule: decodeCalendarState(entry.schedule_encoding) }))
+      for (const entry of entries) {
+        for (let i = 0; i < attendeeGrid.length; i++) {
+          for (let j = 0; j < attendeeGrid[i].length; j++) {
+            if (entry.schedule[i][j] === 1) {
+              attendeeGrid[i][j].push(entry.name)
+            }
+          }
+        }
+      }
     }
-    return json({ session, lobby, username, allAvailability })
+    return json({ session, lobby, username, allAvailability, attendeeGrid })
   }
   return json({})
 }
 
 export default function Lobby() {
-  const { lobby, allAvailability } = useLoaderData()
+  const { lobby, allAvailability, attendeeGrid } = useLoaderData()
 
   const [username, setUsername] = useState('')
 
@@ -67,6 +78,7 @@ export default function Lobby() {
   const [userAvailability, setUserAvailability] = useState<number[][]>(initializeUserAvailability(''))
   const [usernameInProgress, setUsernameInProgress] = useState('')
   const [view, setView] = useState('input')
+  const [hoveredCell, setHoveredCell] = useState([-1, -1])
 
   const [combinedCalendar, setCombinedCalendar] = useState(initialCombinedAvailability)
 
@@ -109,18 +121,23 @@ export default function Lobby() {
   }
 
   return (
-    <>
+    // <>
       <div className="container min-w-[900px] max-md:w-full max-md:min-w-[300px] mx-auto max-lg:mt-2 max-lg:pb-0 max-lg:h-full h-full flex flex-col py-8 max-lg:p-4 gap-4">
         <div className={`container fixed mx-auto w-full min-w-[900px] max-md:min-w-[300px] max-lg:w-11/12 z-50 flex rounded-lg bg-zinc-800 p-2 border border-white/10`}>
           <h1 className="text-2xl max-md:text-lg font-semibold w-full px-4 max-md:px-2 grow">{lobby.name}</h1>
           <button className="py-1 px-2 bg-theme-yellow text-theme-dark whitespace-nowrap rounded-md text-sm">Copy Link</button>
         </div>
         
-        <div className="w-11/12 flex whitespace-nowrap gap-4 justify-center mx-auto pt-16">
-          <button className={`${view === 'input' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1`} onClick={() => setView('input')} disabled={!isMobile}>Your Availability</button>
-          <button className={`${view === 'combined' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1`} onClick={() => setView('combined')} disabled={!isMobile}>Group Availability</button>
+        <div className="w-full flex whitespace-nowrap gap-4 justify-center mx-auto pt-16">
+          <div className="flex w-full">
+            <button className={`${view === 'input' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1 ml-auto`} onClick={() => setView('input')} disabled={!isMobile}>Your Availability</button>
+          </div>
+          <div className="flex flex-nowrap w-full">
+            <button className={`${view === 'combined' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1`} onClick={() => setView('combined')} disabled={!isMobile}>Group Availability</button>
+            <div className="flex grow w-full justify-end items-center"><span>{(hoveredCell[0] >= 0 && hoveredCell[1] >= 0) && attendeeGrid[hoveredCell[0]][hoveredCell[1]].join(', ')}</span></div>
+          </div>
         </div>
-        <div className="flex w-full gap-4">
+        <div className="flex w-full gap-4 pb-10">
           {
             ((isMobile && view === 'input') || !isMobile) && (
               <div className="w-full relative">
@@ -143,7 +160,7 @@ export default function Lobby() {
                     ))
                   }
                 </div>
-                <div className={`transition ${!username && 'blur-md pointer-events-none opacity-30'} w-full border border-white/10 rounded-md`}>
+                <div className={`transition ${!username && 'blur-md pointer-events-none opacity-30'} w-full ${!isMobile && 'border border-white/10 rounded-md'}`}>
                   <CalendarInput username={username} schedule={userAvailability} setUserAvailability={updateUserAvailability} isMobile={isMobile} lobbyId={lobby.id} />
                 </div>
               </div>
@@ -179,7 +196,7 @@ export default function Lobby() {
 
                           const highlightedCellStyle = `${color} text-opacity-100 text-theme-dark font-bold`
                           return (
-                            <CalendarCell hour_i={hour_i} hour={hour} highlightedCellStyle={highlightedCellStyle} key={`${day_i}-${hour_i}`} />
+                            <CalendarCell hour_i={hour_i} hour={hour} highlightedCellStyle={highlightedCellStyle} onMouseOver={() => setHoveredCell([day_i, hour_i])} key={`${day_i}-${hour_i}`}/>
                           )}
                         )
                       }
@@ -192,6 +209,6 @@ export default function Lobby() {
           }
         </div>
       </div>
-    </>
+    // </>
   )
 }

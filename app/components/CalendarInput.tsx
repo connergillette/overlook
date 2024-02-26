@@ -3,6 +3,7 @@ import type { PostgrestResponse, SupabaseClient } from '@supabase/supabase-js'
 import React, { useEffect, useState } from 'react';
 import { encodeCalendarState } from '~/util/CalendarEncoding';
 import CalendarInputCell from './CalendarInputCell'
+import MobileCalendarInput from './MobileCalendarInput'
 
 interface Props {
   username: string,
@@ -21,7 +22,6 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
   const [isDragging, setIsDragging] = useState(false)
   const [mouseDownPos, setMouseDownPos] = useState<number[] | null>(null)
   const [highlightType, setHighlightType] = useState(true)
-  const [dayIndex, setDayIndex] = useState(0)
 
   useEffect(() => {
     if (rerender) {
@@ -98,7 +98,6 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
   }
   
   const daysOfWeekAbbrev = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
   if (!isMobile) {
     return (
@@ -132,37 +131,13 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
       </>
     )
   } else {
-    const day = calendar[dayIndex]
-    return (
-      <div className="relative text-sm w-full">
-        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault() }}>
-          <input type="hidden" name="name" value={username} />
-        </Form>
-        {
-          <div key={dayIndex} className="flex flex-col w-11/12 mx-auto mb-16 rounded-lg bg-zinc-800">
-            <div className="text-center select-none">{daysOfWeek[dayIndex]}</div>
-            {
-              day.map((hour, hour_i) => (
-                <div 
-                  key={`${dayIndex}-${hour_i}`}
-                  className={`p-2 text-center align-middle h-12 ${ (calendar.length > dayIndex && calendar[dayIndex].length > hour_i && hour == 1) ? 'bg-theme-yellow text-opacity-100 text-theme-dark font-bold' : 'text-opacity-50 text-theme-white outline outline-white/10'}`}
-                  onTouchStart={(e) => { startDragging(dayIndex, hour_i); applyTouchHighlighting(dayIndex, hour_i); stopDragging(dayIndex, hour_i) }}
-                >
-                  {hour_i % 2 == 0 ? `${hour_i / 2}:00` : ''}
-                </div>
-              ))
-            }
-          </div>
-        }
-        <div className="flex fixed bottom-0 w-full bg-blend-difference bg-theme-dark px-10 h-12">
-          <div className="flex grow text-left h-full" onClick={() => setDayIndex(Math.max(0, dayIndex - 1))}>
-           <span className="self-center">{'Prev Day'}</span>
-          </div>
-          <div className="flex h-full" onClick={() => setDayIndex(Math.min(dayIndex + 1, 6))}>
-            <span className="self-center">{'Next Day'}</span>
-          </div>
-        </div>
-      </div>
-    )
+    return <MobileCalendarInput 
+      username={username}
+      availabilityFormRef={availabilityFormRef}
+      calendar={calendar}
+      startDragging={startDragging}
+      applyTouchHighlighting={applyTouchHighlighting}
+      stopDragging={stopDragging}
+    />
   }
 }
