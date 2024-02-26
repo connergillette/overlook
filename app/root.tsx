@@ -78,7 +78,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="bg-theme-dark text-theme-white h-screen">
+      <body className="bg-theme-dark text-theme-white h-screen w-screen">
         <Outlet context={{ supabase, session }} />
         <ScrollRestoration />
         <Scripts />

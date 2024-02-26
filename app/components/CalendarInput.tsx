@@ -110,7 +110,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
           {
             calendar.map((day, day_i) => (
               <div key={day_i} className="flex flex-col w-full">
-                <div className="text-center select-none font-bold m-1">{daysOfWeekAbbrev[day_i]}</div>
+                <div className="text-center select-none font-bold p-1 bg-zinc-800">{daysOfWeekAbbrev[day_i]}</div>
                 {
                   day.map((hour, hour_i) => (
                     <CalendarInputCell
@@ -139,7 +139,7 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
           <input type="hidden" name="name" value={username} />
         </Form>
         {
-          <div key={dayIndex} className="flex flex-col w-11/12 mx-auto mb-16 rounded-lg">
+          <div key={dayIndex} className="flex flex-col w-11/12 mx-auto mb-16 rounded-lg bg-zinc-800">
             <div className="text-center select-none">{daysOfWeek[dayIndex]}</div>
             {
               day.map((hour, hour_i) => (
