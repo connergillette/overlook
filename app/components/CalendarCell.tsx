@@ -9,7 +9,7 @@ export default function CalendarCell({ hour_i, hour, highlightedCellStyle } : Pr
     <div
       className={`\
     h-min text-center select-none w-full \
-        ${(hour > 0) ? highlightedCellStyle : 'text-opacity-50'}`}
+        ${(hour > 0) ? highlightedCellStyle : 'text-theme-white'}`}
     >
       <div className={`m-1`}>
         {hour_i % 2 == 0 ? `${hour_i / 2}:00` : <br />}

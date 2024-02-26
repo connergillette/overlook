@@ -177,7 +177,7 @@ export default function Lobby() {
                             case 100: color = 'bg-theme-yellow/100'; break;
                           }
 
-                          const highlightedCellStyle = `${color} text-opacity-100`
+                          const highlightedCellStyle = `${color} text-opacity-100 text-theme-dark font-bold`
                           return (
                             <CalendarCell hour_i={hour_i} hour={hour} highlightedCellStyle={highlightedCellStyle} key={`${day_i}-${hour_i}`} />
                           )}
