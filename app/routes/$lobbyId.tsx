@@ -130,18 +130,28 @@ export default function Lobby() {
         
         <div className="w-full flex whitespace-nowrap gap-4 justify-center mx-auto pt-16">
           <div className="flex w-full">
-            {
+            {/* TODO: Find a better place for this */}
+            {/* {
               (!isMobile && username) && (
                 <div className="flex grow w-full items-center"><span>{username}</span></div>
               )
-            }
+            } */}
             <button className={`${view === 'input' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1 ml-auto`} onClick={() => setView('input')} disabled={!isMobile}>Your Availability</button>
           </div>
           <div className="flex flex-nowrap w-full">
             <button className={`${view === 'combined' && 'bg-theme-yellow text-theme-dark'} rounded-lg transition-colors px-2 py-1`} onClick={() => setView('combined')} disabled={!isMobile}>Group Availability</button>
+            {
+              !isMobile && (
+                <div className="flex justify-end items-center grow text-white/50"><span>{(hoveredCell[0] >= 0 && hoveredCell[1] >= 0) && `${attendeeGrid[hoveredCell[0]][hoveredCell[1]].join(', ')} (${attendeeGrid[hoveredCell[0]][hoveredCell[1]].length}/${maxAttendance})`}</span></div>
+              )
+            }
           </div>
         </div>
-        <div className="flex justify-end items-center"><span>{(hoveredCell[0] >= 0 && hoveredCell[1] >= 0) && `${attendeeGrid[hoveredCell[0]][hoveredCell[1]].join(', ')} (${attendeeGrid[hoveredCell[0]][hoveredCell[1]].length}/${maxAttendance})`}</span></div>
+        {
+          isMobile && (
+            <div className="flex justify-center items-center text-white/50"><span>{(hoveredCell[0] >= 0 && hoveredCell[1] >= 0) && `${attendeeGrid[hoveredCell[0]][hoveredCell[1]].join(', ')} (${attendeeGrid[hoveredCell[0]][hoveredCell[1]].length}/${maxAttendance})`}</span></div>
+          )
+        }
         <div className="flex w-full gap-4 pb-10">
           {
             ((isMobile && view === 'input') || !isMobile) && (
@@ -174,7 +184,7 @@ export default function Lobby() {
           {
             (!isMobile || (isMobile && view === 'combined')) && (
               <div className="flex flex-col w-full border border-white/10 rounded-md" onMouseLeave={() => setHoveredCell([-1, -1])}>
-                <div className={`flex w-full rounded-lg text-sm max-md:w-11/12 mx-auto`}>
+                <div className={`flex w-full rounded-lg text-sm mx-auto`}>
                   {
                     combinedCalendar.map((day, day_i) => (
                       <div key={day_i} className="flex flex-col w-full">

@@ -23,7 +23,7 @@ export default function MobileCalendarInput({ username, availabilityFormRef, cal
       </Form>
       {
         dayIndex === -1 && (
-          <div className="grid grid-flow-row grid-cols-3 items-center justify-center w-11/12 mx-auto rounded-lg gap-4">
+          <div className="grid grid-flow-row grid-cols-3 items-center justify-center mx-auto rounded-lg gap-4">
             {/* <div className="flex text-center select-none bg-zinc-800 border-b border-white/10 h-10 font-bold text-base justify-center items-center"><span>Choose a day</span></div> */}
             {
               daysOfWeek.map((day, day_i) => (
@@ -37,7 +37,7 @@ export default function MobileCalendarInput({ username, availabilityFormRef, cal
       }
       {
         dayIndex >= 0 && (
-          <div className="flex flex-col w-11/12 mx-auto">
+          <div className="flex flex-col mx-auto">
             <div className="flex bg-theme-dark overflow-x-scroll overflow-y-hidden py-2 px-1 gap-2">
               {
                 daysOfWeek.map((day, day_i) => (
