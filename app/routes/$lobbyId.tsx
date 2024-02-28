@@ -98,9 +98,22 @@ export default function Lobby() {
     setCombinedCalendar(newCombinedCalendar)
   }
 
+  const updateAttendeeGrid = () => {
+    let newAttendeeGrid = [...attendeeGrid]
+
+    for (let i = 0; i < value.length; i++) {
+      for (let k = 0; k < value[i].length; k++) {
+        if (userAvailability[i][k] === 1) {
+          newAttendeeGrid[i][k].push(username)
+        }
+      }
+    }
+  }
+
   const updateUserAvailability = (value: number[][]) => {
     setUserAvailability(value)
     updateCombinedCalendar()
+    updateAttendeeGrid()
   }
 
   const updateUsername = (username: string) => {
