@@ -39,13 +39,13 @@ export const loader: LoaderFunction = async ({ request, params }: LoaderArgs) =>
         }
       }
     }
-    return json({ session, lobby, username, allAvailability, attendeeGrid })
+    return json({ session, lobby, username, allAvailability, attendeeGrid, domain: process.env.DOMAIN })
   }
   return json({})
 }
 
 export default function Lobby() {
-  const { lobby, allAvailability, attendeeGrid } = useLoaderData()
+  const { lobby, allAvailability, attendeeGrid, domain } = useLoaderData()
 
   const [username, setUsername] = useState('')
 
@@ -79,6 +79,7 @@ export default function Lobby() {
   const [usernameInProgress, setUsernameInProgress] = useState('')
   const [view, setView] = useState('input')
   const [hoveredCell, setHoveredCell] = useState([-1, -1])
+  const [hasCopied, setHasCopied] = useState(false)
 
   const [combinedCalendar, setCombinedCalendar] = useState(initialCombinedAvailability)
 
@@ -107,6 +108,15 @@ export default function Lobby() {
     updateUserAvailability(initializeUserAvailability(username))
   }
 
+  const copyLink = async () => {
+    // const type = "text/plain";
+    const text = `https://${domain}/${lobby.id}`
+    // const blob = new Blob([text], { type });
+    // const data = [new ClipboardItem({ [type]: blob })];
+    await navigator.clipboard.writeText(text);
+    setHasCopied(true)
+  }
+
   useEffect(() => {
     setIsMobile(window.screen.width <= 500)
     updateCombinedCalendar()
@@ -125,7 +135,7 @@ export default function Lobby() {
       <div className="container min-w-[900px] max-md:w-full max-md:min-w-[300px] mx-auto max-lg:mt-2 max-lg:pb-0 max-lg:h-full h-full flex flex-col py-8 max-lg:p-4 gap-4">
         <div className={`container fixed mx-auto w-full min-w-[900px] max-md:min-w-[300px] max-lg:w-11/12 z-50 flex rounded-lg bg-zinc-800 p-2 border border-white/10`}>
           <h1 className="text-2xl max-md:text-lg font-semibold w-full px-4 max-md:px-2 grow">{lobby.name}</h1>
-          <button className="py-1 px-2 bg-theme-yellow text-theme-dark whitespace-nowrap rounded-md text-sm">Copy Link</button>
+          <button type="button" className="py-1 px-2 bg-theme-yellow text-theme-dark whitespace-nowrap rounded-md text-sm" onClick={async () => await copyLink()}>{hasCopied ? 'Copied!' : 'Copy Link'}</button>
         </div>
         
         <div className="w-full flex whitespace-nowrap gap-4 justify-center mx-auto pt-16">
