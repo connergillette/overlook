@@ -101,10 +101,12 @@ export default function Lobby() {
   const updateAttendeeGrid = () => {
     let newAttendeeGrid = [...attendeeGrid]
 
-    for (let i = 0; i < value.length; i++) {
-      for (let k = 0; k < value[i].length; k++) {
+    for (let i = 0; i < newAttendeeGrid.length; i++) {
+      for (let k = 0; k < newAttendeeGrid[i].length; k++) {
         if (userAvailability[i][k] === 1) {
-          newAttendeeGrid[i][k].push(username)
+          if (!newAttendeeGrid[i][k].includes(username)) {
+            newAttendeeGrid[i][k].push(username)
+          }
         }
       }
     }
