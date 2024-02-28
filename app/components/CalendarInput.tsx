@@ -102,14 +102,21 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
   if (!isMobile) {
     return (
       <>
-        <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault(); }}>
-          <input type="hidden" name="name" value={username} />
-        </Form>
-        <div className="flex w-full rounded-lg text-sm">
+      <Form method="post" ref={availabilityFormRef} onSubmit={(e) => { e.preventDefault(); }}>
+        <input type="hidden" name="name" value={username} />
+      </Form>
+      <div className={`flex flex-col gap-4`}>
+        <div className="flex rounded-lg overflow-hidden border border-white/10">
+          {
+            daysOfWeekAbbrev.map((day, day_i) => (
+              <div className="text-center select-none font-bold p-1 bg-zinc-800 grow" key={`${daysOfWeekAbbrev[day_i]}-head`}>{daysOfWeekAbbrev[day_i]}</div>
+            ))
+          }
+        </div>
+        <div className={`flex w-full rounded-lg text-sm  ${!isMobile && 'border border-white/10 rounded-md'}`}>
           {
             calendar.map((day, day_i) => (
               <div key={day_i} className="flex flex-col w-full">
-                <div className="text-center select-none font-bold p-1 bg-zinc-800">{daysOfWeekAbbrev[day_i]}</div>
                 {
                   day.map((hour, hour_i) => (
                     <CalendarInputCell
@@ -128,7 +135,9 @@ export default function CalendarInput ({ username, isMobile, schedule, lobbyId, 
             ))
           }
         </div>
+      </div>
       </>
+
     )
   } else {
     return <MobileCalendarInput 

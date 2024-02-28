@@ -48,15 +48,16 @@ export default function Index() {
   // const actionData = useActionData()
 
   return (
-    <div className="container flex flex-col justify-center mx-auto h-2/3">
-      <h1 className="text-6xl text-center font-semibold text-theme-yellow">Overlook</h1>
-      <Form method="post" className="flex flex-col items-center w-full">
-        <div className="w-1/2 max-lg:w-11/12 m-4 flex flex-col justify-center">
-          <span className="w-full text-center">ROOM NAME</span>
-          <input type="text" name="name" minLength={1} maxLength={100} className="text-2xl bg-transparent text-theme-white text-center outline py-2 px-4 outline-white/10 rounded-md" autoFocus/>
-        </div>
-        <button type="submit" className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark">Create New Room</button>
-      </Form>
+    <div className="h-screen">
+      <div className="container flex flex-col justify-center mx-auto h-2/3 gap-10">
+        <h1 className="text-6xl text-center font-semibold text-theme-light">Overlook</h1>
+        <Form method="post" className="flex flex-col items-center w-full gap-4">
+          <div className="w-1/2 max-lg:w-11/12 flex flex-col justify-center">
+            <input type="text" name="name" minLength={1} maxLength={100} className="text-2xl bg-transparent text-theme-white text-center outline py-2 px-4 outline-white/10 rounded-md" autoFocus/>
+          </div>
+          <button type="submit" className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark hover:bg-theme-yellow/90 transition-colors">Create New Room</button>
+        </Form>
+      </div>
     </div>
   )
 }

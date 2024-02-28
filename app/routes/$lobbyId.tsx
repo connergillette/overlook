@@ -2,8 +2,9 @@ import { json } from '@remix-run/node'
 import type { LoaderArgs, LoaderFunction } from '@remix-run/node'
 import { Form, useLoaderData } from '@remix-run/react'
 import { createServerClient } from '@supabase/auth-helpers-remix'
-import { PostgrestResponse } from '@supabase/supabase-js'
+import type { PostgrestResponse } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+
 import CalendarCell from '~/components/CalendarCell'
 import CalendarInput from '~/components/CalendarInput'
 import { decodeCalendarState } from '~/util/CalendarEncoding'
@@ -124,10 +125,7 @@ export default function Lobby() {
   }
 
   const copyLink = async () => {
-    // const type = "text/plain";
     const text = `https://${domain}/${lobby.id}`
-    // const blob = new Blob([text], { type });
-    // const data = [new ClipboardItem({ [type]: blob })];
     await navigator.clipboard.writeText(text);
     setHasCopied(true)
   }
@@ -146,11 +144,19 @@ export default function Lobby() {
   }
 
   return (
-    // <>
+    <>
       <div className="container min-w-[900px] max-md:w-full max-md:min-w-[300px] mx-auto max-lg:mt-2 max-lg:pb-0 max-lg:h-full h-full flex flex-col py-8 max-lg:p-4 gap-4">
-        <div className={`container fixed mx-auto w-full min-w-[900px] max-md:min-w-[300px] max-lg:w-11/12 z-50 flex rounded-lg bg-zinc-800 p-2 border border-white/10`}>
-          <h1 className="text-2xl max-md:text-lg font-semibold w-full px-4 max-md:px-2 grow">{lobby.name}</h1>
-          <button type="button" className="py-1 px-2 bg-theme-yellow text-theme-dark whitespace-nowrap rounded-md text-sm" onClick={async () => await copyLink()}>{hasCopied ? 'Copied!' : 'Copy Link'}</button>
+        <div className={`container items-center fixed mx-auto w-full min-w-[900px] max-md:min-w-[300px] max-lg:w-11/12 z-50 flex rounded-lg bg-zinc-800 p-2 border border-white/10`}>
+          <a href="/" className="grow"><span className="text-center font-semibold text-theme-yellow px-4 max-lg:px-2 max-lg:text-sm grow">Overlook</span></a>
+          <h1 className="text-2xl absolute max-md:text-lg font-semibold w-full max-md:px-2 grow text-center max-lg:text-sm">{lobby.name}</h1>
+          <div className="max-w-24">
+            {
+              !isMobile && <button type="button" className="py-1 px-2 grow bg-theme-yellow text-theme-dark whitespace-nowrap rounded-md text-sm" onClick={async () => await copyLink()}>{hasCopied ? 'Copied!' : 'Copy Link'}</button>
+            }
+            {
+              isMobile && <button type="button" className="py-1 px-2 grow bg-theme-yellow text-theme-dark whitespace-nowrap rounded-md text-sm" onClick={async () => await copyLink()}>{hasCopied ? 'v/' : '[]'}</button>
+            }
+          </div>
         </div>
         
         <div className="w-full flex whitespace-nowrap gap-4 justify-center mx-auto pt-16">
@@ -189,7 +195,7 @@ export default function Lobby() {
                           type="text"
                           minLength={1}
                           maxLength={100}
-                          className="text-xl bg-transparent text-white px-2 py-2 w-full my-4 border border-white/10 rounded-md" 
+                          className="text-xl bg-transparent text-white px-2 py-2 w-full border border-white/10 rounded-md" 
                           placeholder="What's your name?"
                           value={usernameInProgress}
                           onChange={(e) => setUsernameInProgress(e.target.value)}
@@ -200,7 +206,7 @@ export default function Lobby() {
                     ))
                   }
                 </div>
-                <div className={`transition ${!username && 'blur-md pointer-events-none opacity-30'} w-full ${!isMobile && 'border border-white/10 rounded-md'}`}>
+                <div className={`transition ${!username && 'blur-md pointer-events-none opacity-30'} w-full`}>
                   <CalendarInput username={username} schedule={userAvailability} setUserAvailability={updateUserAvailability} isMobile={isMobile} lobbyId={lobby.id} />
                 </div>
               </div>
@@ -208,47 +214,54 @@ export default function Lobby() {
           }
           {
             (!isMobile || (isMobile && view === 'combined')) && (
-              <div className="flex flex-col w-full border border-white/10 rounded-md" onMouseLeave={() => setHoveredCell([-1, -1])}>
-                <div className={`flex w-full rounded-lg text-sm mx-auto`}>
+            <div className="flex flex-col gap-4 w-full relative">
+                <div className="flex rounded-lg overflow-hidden border border-white/10">
                   {
-                    combinedCalendar.map((day, day_i) => (
-                      <div key={day_i} className="flex flex-col w-full">
-
-                        <div className="text-center select-none font-bold p-1 bg-zinc-800">{daysOfWeek[day_i]}</div>
-                        {
-                          day.map((hour, hour_i) => {
-                            const weight = Math.ceil((hour / maxAttendance) * 100)
-                            const calculatedOpacity = Math.ceil(weight / 10) * 10
-
-                            // TODO: This is bad but necessary for Tailwind to keep up (but there's a better way)
-                            let color = 'bg-theme-yellow/10'
-                            switch(calculatedOpacity){
-                              case 20: color = 'bg-theme-yellow/20'; break;
-                              case 30: color = 'bg-theme-yellow/30'; break;
-                              case 40: color = 'bg-theme-yellow/40'; break;
-                              case 50: color = 'bg-theme-yellow/50'; break;
-                              case 60: color = 'bg-theme-yellow/60'; break;
-                              case 70: color = 'bg-theme-yellow/70'; break;
-                              case 80: color = 'bg-theme-yellow/80'; break;
-                              case 90: color = 'bg-theme-yellow/90'; break;
-                              case 100: color = 'bg-theme-yellow/100'; break;
-                            }
-
-                            const highlightedCellStyle = `${color} text-opacity-100 text-theme-dark font-bold`
-                            return (
-                              <CalendarCell hour_i={hour_i} hour={hour} highlightedCellStyle={highlightedCellStyle} onMouseOver={() => setHoveredCell([day_i, hour_i])} key={`${day_i}-${hour_i}`}/>
-                            )}
-                          )
-                        }
-                      </div>
+                    daysOfWeek.map((day, day_i) => (
+                      <div className="text-center select-none font-bold p-1 bg-zinc-800 grow" key={`${daysOfWeek[day_i]}-head`}>{daysOfWeek[day_i]}</div>
                     ))
                   }
+                </div>
+                <div className="flex flex-col w-full border border-white/10 rounded-lg gap-4 overflow-hidden" onMouseLeave={() => setHoveredCell([-1, -1])}>
+                  <div className={`flex w-full rounded-lg text-sm mx-auto`}>
+                    {
+                      combinedCalendar.map((day, day_i) => (
+                        <div key={day_i} className="flex flex-col w-full">
+                          {
+                            day.map((hour, hour_i) => {
+                              const weight = Math.ceil((hour / maxAttendance) * 100)
+                              const calculatedOpacity = Math.ceil(weight / 10) * 10
+
+                              // TODO: This is bad but necessary for Tailwind to keep up (but there's a better way)
+                              let color = 'bg-theme-yellow/10'
+                              switch(calculatedOpacity){
+                                case 20: color = 'bg-theme-yellow/20'; break;
+                                case 30: color = 'bg-theme-yellow/30'; break;
+                                case 40: color = 'bg-theme-yellow/40'; break;
+                                case 50: color = 'bg-theme-yellow/50'; break;
+                                case 60: color = 'bg-theme-yellow/60'; break;
+                                case 70: color = 'bg-theme-yellow/70'; break;
+                                case 80: color = 'bg-theme-yellow/80'; break;
+                                case 90: color = 'bg-theme-yellow/90'; break;
+                                case 100: color = 'bg-theme-yellow/100'; break;
+                              }
+
+                              const highlightedCellStyle = `${color} text-opacity-100 text-theme-dark font-bold`
+                              return (
+                                <CalendarCell hour_i={hour_i} hour={hour} highlightedCellStyle={highlightedCellStyle} onMouseOver={() => setHoveredCell([day_i, hour_i])} key={`${day_i}-${hour_i}`}/>
+                              )}
+                            )
+                          }
+                        </div>
+                      ))
+                    }
+                  </div>
                 </div>
               </div>
             )
           }
         </div>
       </div>
-    // </>
+    </>
   )
 }

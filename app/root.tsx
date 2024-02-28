@@ -7,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useParams,
   useRevalidator,
 } from "@remix-run/react"
 import { SupabaseClient, createBrowserClient, createServerClient } from '@supabase/auth-helpers-remix'
@@ -50,6 +51,7 @@ export const loader = async ({ request }: LoaderArgs) => {
 
 export default function App() {
   const { env, session } = useLoaderData()
+  const params = useParams()
   const { revalidate } = useRevalidator()
   const [supabase] = useState<SupabaseClient>(() => createBrowserClient(env.SUPABASE_URL, env.SUPABASE_KEY))
 
@@ -78,12 +80,17 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="bg-theme-dark text-theme-white h-screen w-screen">
+      <body className="bg-theme-dark text-theme-white">
         <Outlet context={{ supabase, session }} />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>
+      <footer>
+        <div className="flex flex-col justify-center items-center mx-auto gap-10 bg-zinc-900 bottom-0 h-14 w-full -m-14 text-theme-white">
+          <span>Made by <a href="https://cwgillette.com" target="_blank" rel="noreferrer" className="text-theme-yellow text-bold hover:text-theme-yellow/90 transition-colors">Conner Gillette</a>.</span>
+        </div>
+      </footer>
     </html>
   );
 }
