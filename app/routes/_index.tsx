@@ -3,6 +3,7 @@ import type { ActionFunction, LoaderArgs, LoaderFunction } from '@remix-run/node
 import { Form } from '@remix-run/react'
 import { createServerClient } from '@supabase/auth-helpers-remix'
 import type { PostgrestResponse } from '@supabase/supabase-js'
+import DatePicker from '~/components/DatePicker'
 
 export const action: ActionFunction = async ({ request }) => {
   const response = new Response()
@@ -38,21 +39,18 @@ export const loader: LoaderFunction = async ({ request }: LoaderArgs) => {
   )
   const { data: { session }} = await supabase.auth.getSession()
 
-  /// ...resolve loader
-
   return json({ session })
 }
 
 export default function Index() {
-  // const { session } = useLoaderData()
-  // const actionData = useActionData()
-
   return (
     <div className="h-screen">
       <div className="container flex flex-col justify-center mx-auto h-2/3 gap-10">
         <h1 className="text-6xl text-center font-semibold text-theme-light">Overlook</h1>
         <Form method="post" className="flex flex-col items-center w-full gap-4">
-          <div className="w-1/2 max-lg:w-11/12 flex flex-col justify-center">
+          <div className="w-1/2 max-lg:w-11/12 flex flex-col justify-center gap-4">
+            {/* TODO: Uncomment this after component is finished */}
+            {/* <DatePicker /> */}
             <input type="text" name="name" minLength={1} maxLength={100} className="text-2xl bg-transparent text-theme-white text-center outline py-2 px-4 outline-white/10 rounded-md" autoFocus/>
           </div>
           <button type="submit" className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark hover:bg-theme-yellow/90 transition-colors">Create New Room</button>

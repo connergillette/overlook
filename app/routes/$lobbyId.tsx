@@ -147,7 +147,7 @@ export default function Lobby() {
     <>
       <div className="container min-w-[900px] max-md:w-full max-md:min-w-[300px] mx-auto max-lg:mt-2 max-lg:pb-0 max-lg:h-full h-full flex flex-col py-8 max-lg:p-4 gap-4">
         <div className={`container items-center fixed mx-auto w-full min-w-[900px] max-md:min-w-[300px] max-lg:w-11/12 z-50 flex rounded-lg bg-zinc-800 p-2 border border-white/10`}>
-          <a href="/" className="grow"><span className="text-center font-semibold text-theme-yellow px-4 max-lg:px-2 max-lg:text-sm grow">Overlook</span></a>
+          <a href="/" className="grow z-10"><span className="text-center font-semibold text-theme-yellow px-4 max-lg:px-2 max-lg:text-sm grow">Overlook</span></a>
           <h1 className="text-2xl absolute max-md:text-lg font-semibold w-full max-md:px-2 grow text-center max-lg:text-sm">{lobby.name}</h1>
           <div className="max-w-24">
             {
