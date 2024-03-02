@@ -1,7 +1,15 @@
 // TODO: This component is WIP
 
+import { useEffect, useState } from 'react'
+import DatePickerCell from './DatePickerCell'
+
 export default function DatePicker() {
-  const grid = Array.from({ length: 4 }, () => Array.from({ length: 7 }, () => 0))
+  const [isDragging, setIsDragging] = useState(false)
+  const [mouseDownPos, setMouseDownPos] = useState<number[] | null>(null)
+  const [highlightType, setHighlightType] = useState(true)
+  const [rerender, setRerender] = useState(false)
+
+  const [grid, setGrid] = useState(Array.from({ length: 4 }, () => Array.from({ length: 7 }, () => 0)))
   const today = new Date()
   
   const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -19,6 +27,53 @@ export default function DatePicker() {
   const isToday = (date: number) => (date) === today.getDate()
   const isSelectableDay = (date: Date) => (date.getMonth() === today.getMonth() && date.getDate() >= today.getDate()) || (date.getMonth() > today.getMonth())
 
+  useEffect(() => {
+    if (rerender) {
+      setRerender(false)
+    }
+  }, [rerender])
+
+  const highlightCell = (day: number, hour: number) => {
+    grid[day][hour] = highlightType ? 1 : 0
+    setGrid(grid)
+    setRerender(true)
+  }
+
+  const startDragging = (day: number, hour: number) => {
+    if (!isDragging) {
+      setIsDragging(true)
+      setMouseDownPos([day, hour])
+      setHighlightType(!calendar[day][hour])
+    }
+  }
+
+  const applyDragHighlighting = (day: number, hour: number) => {
+    if (isDragging) {
+      if (mouseDownPos === null) return
+      const [startDay, startHour] = mouseDownPos
+      const minX = Math.min(startDay, day)
+      const minY = Math.min(startHour, hour)
+      const maxX = Math.max(startDay, day)
+      const maxY = Math.max(startHour, hour)
+      
+      for (let i = minX; i <= maxX; i++) {
+        for (let j = minY; j <= maxY; j++) {
+          highlightCell(i, j)
+        }
+      }
+    }
+  }
+  
+  const applyTouchHighlighting = (day: number, hour: number) => {
+    highlightCell(day, hour)
+  }
+  
+  const stopDragging = (endDay: number, endHour: number) => {
+    applyDragHighlighting(endDay, endHour)
+    setIsDragging(false)
+    submitChanges()
+  }
+
   return (
     <div className="flex flex-col gap-4 max-w-[300px] justify-center mx-auto">
       <div className="flex rounded-lg overflow-hidden border border-white/10">
@@ -35,9 +90,16 @@ export default function DatePicker() {
           })
         }
         {
-          Array.from({ length: daysInMonth }, (_, i) => i + 1).map((date, date_i) => {
-            return <div key={date_i} className={`flex aspect-square items-center justify-center bg-theme-dark text-theme-white ${isToday(date) && 'text-theme-yellow font-bold'}`}>{date}</div>
-          })
+          Array.from({ length: daysInMonth }, (_, i) => i + 1).map((date, date_i) => (
+            <DatePickerCell
+              key={date_i}
+              date={date}
+              isToday={isToday(date)}
+              startDragging={startDragging}
+              stopDragging={stopDragging}
+              applyDragHighlighting={applyDragHighlighting}
+            />
+          ))
         }
         {
           Array.from({ length: 42 - daysInMonth - firstDayOfWeek }, (_, i) => i + 1).map((date, date_i) => {

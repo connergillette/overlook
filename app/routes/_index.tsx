@@ -4,6 +4,7 @@ import { Form } from '@remix-run/react'
 import { createServerClient } from '@supabase/auth-helpers-remix'
 import type { PostgrestResponse } from '@supabase/supabase-js'
 import DatePicker from '~/components/DatePicker'
+import DonationCTA from '~/components/DonationCTA'
 
 export const action: ActionFunction = async ({ request }) => {
   const response = new Response()
@@ -45,8 +46,8 @@ export const loader: LoaderFunction = async ({ request }: LoaderArgs) => {
 export default function Index() {
   return (
     <div className="h-screen">
-      <div className="container flex flex-col justify-center mx-auto h-2/3 gap-10">
-        <h1 className="text-6xl text-center font-semibold text-theme-light">Overlook</h1>
+      <div className="container flex flex-col justify-center mx-auto h-full gap-10">
+        <h1 className="text-6xl text-center font-semibold text-theme-light">Timesmith</h1>
         <Form method="post" className="flex flex-col items-center w-full gap-4">
           <div className="w-1/2 max-lg:w-11/12 flex flex-col justify-center gap-4">
             {/* TODO: Uncomment this after component is finished */}
@@ -55,6 +56,7 @@ export default function Index() {
           </div>
           <button type="submit" className="px-4 py-2 rounded-lg bg-theme-yellow text-theme-dark hover:bg-theme-yellow/90 transition-colors">Create New Room</button>
         </Form>
+        <DonationCTA />
       </div>
     </div>
   )
